@@ -1,30 +1,14 @@
-const EMBEDDING_API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 /**
  * Generate a 768-dimensional embedding vector for a text string.
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const response = await fetch(
-    `${EMBEDDING_API_URL}?key=${process.env.GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'models/text-embedding-004',
-        content: { parts: [{ text }] },
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Embedding API error:', errorText);
-    throw new Error(`Embedding API returned ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data.embedding.values as number[];
+  const model = genAI.getGenerativeModel({ model: 'gemini-embedding-001' });
+  const result = await model.embedContent(text);
+  return result.embedding.values;
 }
 
 /**

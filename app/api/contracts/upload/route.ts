@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { countWords } from '@/lib/ocr';
+import { countWords, extractTextFromPdf } from '@/lib/ocr';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +20,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
+    // Read the file buffer FIRST before uploading to Supabase, 
+    // otherwise the stream gets consumed and arrayBuffer() returns empty/fails.
+    const buffer = Buffer.from(await file.arrayBuffer());
+
     // Upload to Supabase Storage
     const fileName = `${user.id}/${crypto.randomUUID()}-${file.name}`;
     const { error: uploadError } = await supabase.storage
@@ -30,15 +34,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: uploadError.message }, { status: 500 });
     }
 
-    // Extract text from PDF
-    const buffer = Buffer.from(await file.arrayBuffer());
+    // Extract text from PDF (with OCR fallback for scanned docs)
     let rawText = '';
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pdfParse = require('pdf-parse') as (buffer: Buffer) => Promise<{ text: string }>;
-      const result = await pdfParse(buffer);
-      rawText = result.text;
-    } catch {
+      const extractResult = await extractTextFromPdf(buffer);
+      rawText = extractResult.text;
+    } catch (err) {
+      console.error('PDF text extraction failed:', err);
       rawText = '';
     }
 

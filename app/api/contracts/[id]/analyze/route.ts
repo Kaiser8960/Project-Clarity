@@ -77,46 +77,48 @@ export async function POST(
       .eq('contract_id', id);
 
     // Store each risk as a contract_clause with embedding
-    for (const risk of risks) {
-      let embedding: number[] | null = null;
-      try {
-        embedding = await generateEmbedding(risk.clause_text);
-      } catch (err) {
-        console.error('Embedding generation failed:', err);
-      }
-
-      await supabase.from('contract_clauses').insert({
-        user_id: user.id,
-        contract_id: id,
-        clause_text: risk.clause_text,
-        clause_reference: risk.clause_reference,
-        risk_type: risk.risk_type,
-        severity: risk.severity,
-        explanation: risk.explanation,
-        embedding,
-      });
-
-      // Create conflict graph edges for cross-document conflicts
-      if (risk.risk_type === 'cross-document-conflict' && risk.conflicting_document) {
-        const { data: conflictDoc } = await supabase
-          .from('documents')
-          .select('id')
-          .eq('name', risk.conflicting_document)
-          .single();
-
-        if (conflictDoc) {
-          await supabase.from('graph_edges').insert({
-            user_id: user.id,
-            source_type: 'contract',
-            source_id: id,
-            target_type: 'document',
-            target_id: conflictDoc.id,
-            edge_type: 'conflict',
-            conflict_description: risk.explanation,
-          });
+    await Promise.all(
+      risks.map(async (risk) => {
+        let embedding: number[] | null = null;
+        try {
+          embedding = await generateEmbedding(risk.clause_text);
+        } catch (err) {
+          console.error('Embedding generation failed:', err);
         }
-      }
-    }
+
+        await supabase.from('contract_clauses').insert({
+          user_id: user.id,
+          contract_id: id,
+          clause_text: risk.clause_text,
+          clause_reference: risk.clause_reference,
+          risk_type: risk.risk_type,
+          severity: risk.severity,
+          explanation: risk.explanation,
+          embedding,
+        });
+
+        // Create conflict graph edges for cross-document conflicts
+        if (risk.risk_type === 'cross-document-conflict' && risk.conflicting_document) {
+          const { data: conflictDoc } = await supabase
+            .from('documents')
+            .select('id')
+            .eq('name', risk.conflicting_document)
+            .single();
+
+          if (conflictDoc) {
+            await supabase.from('graph_edges').insert({
+              user_id: user.id,
+              source_type: 'contract',
+              source_id: id,
+              target_type: 'document',
+              target_id: conflictDoc.id,
+              edge_type: 'conflict',
+              conflict_description: risk.explanation,
+            });
+          }
+        }
+      })
+    );
 
     return NextResponse.json({ risks, count: risks.length }, { status: 200 });
   } catch (err) {

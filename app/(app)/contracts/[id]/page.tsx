@@ -134,6 +134,8 @@ export default function ContractDetailPage({
             return p;
           })
         );
+      } else if (data.error) {
+        throw new Error(data.error);
       }
     } catch (err) {
       console.error('Analysis failed:', err);

@@ -21,7 +21,7 @@ export async function extractTextFromPdf(
     // Try digital text extraction first
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pdfParse = require('pdf-parse') as (buffer: Buffer) => Promise<{ text: string }>;
+      const pdfParse = require('pdf-parse/lib/pdf-parse.js');
       const result = await pdfParse(fileBuffer);
       if (result.text && result.text.trim().length > 50) {
         return { text: result.text, method: 'digital' };
