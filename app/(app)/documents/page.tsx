@@ -31,15 +31,32 @@ export default function DocumentsPage() {
       const formData = new FormData();
       formData.append('file', file);
       try {
-        await fetch('/api/documents/upload', {
+        const res = await fetch('/api/documents/upload', {
           method: 'POST',
           body: formData,
         });
+        const data = await res.json();
+        
+        // Immediately trigger text extraction
+        if (data.document && data.document.id) {
+          fetch(`/api/documents/${data.document.id}/ocr`, {
+            method: 'POST',
+          }).then(() => fetchDocuments());
+        }
       } catch (err) {
         console.error('Upload failed:', err);
       }
     }
     await fetchDocuments();
+  };
+
+  const handleProcessOcr = async (id: string) => {
+    try {
+      await fetch(`/api/documents/${id}/ocr`, { method: 'POST' });
+      await fetchDocuments();
+    } catch (err) {
+      console.error('OCR trigger failed:', err);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -50,7 +67,7 @@ export default function DocumentsPage() {
   const filteredDocs = documents.filter((doc) => {
     switch (activeTab) {
       case 'ocr':
-        return doc.ocr_status === 'pending' || doc.ocr_status === 'processing';
+        return doc.ocr_status === 'pending' || doc.ocr_status === 'processing' || doc.ocr_status === 'failed';
       case 'expiring':
         return getRetentionStatus(doc.expiry_date) === 'expiring';
       case 'deleted':
@@ -154,6 +171,7 @@ export default function DocumentsPage() {
           <DocumentTable
             documents={filteredDocs}
             onDelete={handleDelete}
+            onProcess={handleProcessOcr}
           />
         )}
       </div>

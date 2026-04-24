@@ -14,6 +14,7 @@ export default function ContractDetailPage({
   const [contract, setContract] = useState<Contract | null>(null);
   const [risks, setRisks] = useState<RiskResult[]>([]);
   const [linkedDocs, setLinkedDocs] = useState<Document[]>([]);
+  const [availableDocs, setAvailableDocs] = useState<Document[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState<PipelineState[]>([
@@ -83,8 +84,10 @@ export default function ContractDetailPage({
       .select('document_id')
       .eq('contract_id', id);
 
+    const linkedIds = new Set(links?.map((l) => l.document_id) || []);
+
     if (links && links.length > 0) {
-      const docIds = links.map((l) => l.document_id);
+      const docIds = Array.from(linkedIds);
       const { data: docs } = await supabase
         .from('documents')
         .select('*')
@@ -105,9 +108,30 @@ export default function ContractDetailPage({
           )
         );
       }
+    } else {
+      setLinkedDocs([]);
+    }
+
+    // Fetch available documents to link
+    const { data: allDocs } = await supabase.from('documents').select('*');
+    if (allDocs) {
+      setAvailableDocs(allDocs.filter((d) => !linkedIds.has(d.id)) as Document[]);
     }
 
     setLoading(false);
+  };
+
+  const handleLinkDocument = async (documentId: string) => {
+    try {
+      await fetch(`/api/contracts/${id}/link-document`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId }),
+      });
+      fetchData(); // refresh lists
+    } catch (err) {
+      console.error('Failed to link document:', err);
+    }
   };
 
   const handleAnalyze = async () => {
@@ -187,9 +211,11 @@ export default function ContractDetailPage({
       contractText={contract.raw_text || ''}
       risks={risks}
       linkedDocuments={linkedDocs}
+      availableDocuments={availableDocs}
       pipeline={pipeline}
       expiryDate={contract.expiry_date}
       onAnalyze={handleAnalyze}
+      onLinkDocument={handleLinkDocument}
       analyzing={analyzing}
     />
   );

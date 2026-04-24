@@ -12,9 +12,11 @@ interface ContractViewerProps {
   contractText: string;
   risks: RiskResult[];
   linkedDocuments: Document[];
+  availableDocuments: Document[];
   pipeline: PipelineState[];
   expiryDate: string | null;
   onAnalyze: () => void;
+  onLinkDocument: (documentId: string) => void;
   analyzing: boolean;
 }
 
@@ -23,9 +25,11 @@ export default function ContractViewer({
   contractText,
   risks,
   linkedDocuments,
+  availableDocuments,
   pipeline,
   expiryDate,
   onAnalyze,
+  onLinkDocument,
   analyzing,
 }: ContractViewerProps) {
   const [selectedRiskIndex, setSelectedRiskIndex] = useState<number | null>(null);
@@ -39,7 +43,8 @@ export default function ContractViewer({
           width: '260px',
           borderRight: '0.5px solid var(--border)',
           background: 'var(--bg-surface)',
-          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
           flexShrink: 0,
         }}
       >
@@ -47,6 +52,7 @@ export default function ContractViewer({
           style={{
             padding: '16px',
             borderBottom: '0.5px solid var(--border)',
+            flexShrink: 0,
           }}
         >
           <h3
@@ -62,7 +68,11 @@ export default function ContractViewer({
             Navigation
           </h3>
         </div>
-        <LinkedDocsSidebar documents={linkedDocuments} />
+        <LinkedDocsSidebar 
+          documents={linkedDocuments} 
+          availableDocuments={availableDocuments}
+          onLinkDocument={onLinkDocument}
+        />
       </div>
 
       {/* Center panel — Contract text */}

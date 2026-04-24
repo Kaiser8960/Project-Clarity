@@ -34,7 +34,7 @@ export function chunkText(text: string, maxTokens: number = 500): string[] {
   }
 
   // Handle case where a single paragraph is too long
-  return chunks.flatMap((chunk) => {
+  const finalChunks = chunks.flatMap((chunk) => {
     if (chunk.length <= maxChars) return [chunk];
     const subChunks: string[] = [];
     for (let i = 0; i < chunk.length; i += maxChars) {
@@ -42,4 +42,7 @@ export function chunkText(text: string, maxTokens: number = 500): string[] {
     }
     return subChunks;
   });
+
+  // Filter out any empty chunks to prevent Gemini API 400 Bad Request
+  return finalChunks.filter((chunk) => chunk.trim().length > 0);
 }

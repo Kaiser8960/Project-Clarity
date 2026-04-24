@@ -8,12 +8,14 @@ interface DocumentTableProps {
   documents: Document[];
   onDelete?: (id: string) => void;
   onRetention?: (id: string) => void;
+  onProcess?: (id: string) => void;
 }
 
 export default function DocumentTable({
   documents,
   onDelete,
   onRetention,
+  onProcess,
 }: DocumentTableProps) {
   return (
     <div className="table-container">
@@ -115,6 +117,20 @@ export default function DocumentTable({
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '4px' }}>
+                      {(doc.ocr_status === 'pending' || doc.ocr_status === 'failed') && onProcess && (
+                        <button
+                          className="btn-ghost"
+                          onClick={() => onProcess(doc.id)}
+                          style={{
+                            fontSize: '11px',
+                            fontFamily: 'var(--font-mono)',
+                            padding: '4px 8px',
+                            color: 'var(--accent)',
+                          }}
+                        >
+                          PROCESS
+                        </button>
+                      )}
                       {onRetention && (
                         <button
                           className="btn-ghost"
