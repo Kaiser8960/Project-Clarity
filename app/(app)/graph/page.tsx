@@ -36,9 +36,14 @@ export default function GraphPage() {
       .from('contract_clauses')
       .select('id, clause_text, clause_reference, contract_id');
 
-    // Get all edges
+    // Get all AI conflict edges
     const { data: graphEdges } = await supabase
       .from('graph_edges')
+      .select('*');
+
+    // Get all manual contract-document links
+    const { data: manualLinks } = await supabase
+      .from('contract_documents')
       .select('*');
 
     const allNodes: GraphNode[] = [
@@ -71,6 +76,13 @@ export default function GraphPage() {
         id: `clause-${c.id}`,
         source: c.contract_id,
         target: c.id,
+        type: 'linked' as const,
+      })),
+      // Add manual contract -> document edges
+      ...(manualLinks || []).map((link) => ({
+        id: `manual-link-${link.id}`,
+        source: link.contract_id,
+        target: link.document_id,
         type: 'linked' as const,
       })),
     ];

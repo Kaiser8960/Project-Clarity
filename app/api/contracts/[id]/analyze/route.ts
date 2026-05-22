@@ -86,13 +86,21 @@ export async function POST(
           console.error('Embedding generation failed:', err);
         }
 
+        let finalSeverity = 'low';
+        if (risk.severity) {
+          const lower = risk.severity.toLowerCase();
+          if (['high', 'medium', 'low'].includes(lower)) {
+            finalSeverity = lower;
+          }
+        }
+
         await supabase.from('contract_clauses').insert({
           user_id: user.id,
           contract_id: id,
           clause_text: risk.clause_text,
           clause_reference: risk.clause_reference,
           risk_type: risk.risk_type,
-          severity: risk.severity,
+          severity: finalSeverity,
           explanation: risk.explanation,
           embedding,
         });
@@ -121,11 +129,16 @@ export async function POST(
     );
 
     return NextResponse.json({ risks, count: risks.length }, { status: 200 });
-  } catch (err) {
+  } catch (err: any) {
     console.error('Contract analysis error:', err);
+    
+    // Pass specific error messages (like 503 timeouts) to frontend
+    const msg = err.message || 'Internal server error';
+    const errorStatus = msg.includes('Google Gemini API') ? 503 : 500;
+    
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: msg },
+      { status: errorStatus }
     );
   }
 }

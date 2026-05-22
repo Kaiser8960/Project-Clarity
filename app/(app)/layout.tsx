@@ -8,7 +8,6 @@ const navItems = [
   { href: '/contracts', label: 'Contracts', icon: '📋' },
   { href: '/documents', label: 'Documents', icon: '📁' },
   { href: '/graph', label: 'Knowledge Graph', icon: '🔗' },
-  { href: '/reports', label: 'Reports', icon: '📊' },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

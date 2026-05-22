@@ -108,10 +108,18 @@ ${crossDocInstruction}
       console.log(`Recovered ${risks.length} risks from truncated JSON mode.`);
       if (risks.length > 0) return risks;
       
+      const lowerText = rawText.toLowerCase();
+      if (lowerText.includes('no risk') || lowerText.includes('0 risk')) {
+        return [];
+      }
+      
       throw parseErr;
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to analyze contract with Gemini:', err);
+    if (err.message && (err.message.includes('503') || err.message.includes('Service Unavailable'))) {
+      throw new Error('Google Gemini API is currently unavailable (503). Please try again in a few moments.');
+    }
     throw err;
   }
 }

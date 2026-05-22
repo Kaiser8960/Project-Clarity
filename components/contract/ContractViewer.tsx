@@ -33,7 +33,6 @@ export default function ContractViewer({
   analyzing,
 }: ContractViewerProps) {
   const [selectedRiskIndex, setSelectedRiskIndex] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'risks' | 'graph' | 'report'>('risks');
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 64px)', overflow: 'hidden' }}>
@@ -151,78 +150,35 @@ export default function ContractViewer({
           flexShrink: 0,
         }}
       >
-        {/* Tabs */}
+        {/* Header Title instead of Tabs */}
         <div
           style={{
             display: 'flex',
             borderBottom: '0.5px solid var(--border)',
+            padding: '12px 16px',
           }}
         >
-          {(['risks', 'graph', 'report'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                flex: 1,
-                padding: '12px',
-                background: 'transparent',
-                border: 'none',
-                borderBottom:
-                  activeTab === tab
-                    ? '2px solid var(--accent)'
-                    : '2px solid transparent',
-                color:
-                  activeTab === tab
-                    ? 'var(--accent)'
-                    : 'var(--text-muted)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '12px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              {tab}
-            </button>
-          ))}
+          <span
+            style={{
+              color: 'var(--accent)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '12px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              fontWeight: 600,
+            }}
+          >
+            Identified Risks
+          </span>
         </div>
 
-        {/* Tab content */}
+        {/* Content */}
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {activeTab === 'risks' && (
-            <RiskPanel
-              risks={risks}
-              selectedRiskIndex={selectedRiskIndex}
-              onRiskClick={setSelectedRiskIndex}
-            />
-          )}
-          {activeTab === 'graph' && (
-            <div
-              style={{
-                padding: '32px 16px',
-                textAlign: 'center',
-                color: 'var(--text-muted)',
-                fontSize: '14px',
-              }}
-            >
-              Mini graph view — see{' '}
-              <span style={{ color: 'var(--accent)' }}>/graph</span> for full view
-            </div>
-          )}
-          {activeTab === 'report' && (
-            <div
-              style={{
-                padding: '32px 16px',
-                textAlign: 'center',
-                color: 'var(--text-muted)',
-                fontSize: '14px',
-              }}
-            >
-              View full report on the{' '}
-              <span style={{ color: 'var(--accent)' }}>/reports</span> page
-            </div>
-          )}
+          <RiskPanel
+            risks={risks}
+            selectedRiskIndex={selectedRiskIndex}
+            onRiskClick={setSelectedRiskIndex}
+          />
         </div>
 
         {/* Retention banner */}
