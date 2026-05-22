@@ -67,8 +67,8 @@ export default function ContractViewer({
             Navigation
           </h3>
         </div>
-        <LinkedDocsSidebar 
-          documents={linkedDocuments} 
+        <LinkedDocsSidebar
+          documents={linkedDocuments}
           availableDocuments={availableDocuments}
           onLinkDocument={onLinkDocument}
         />
@@ -116,7 +116,7 @@ export default function ContractViewer({
                   Analyzing...
                 </>
               ) : (
-                '⚡ Analyze with Gemini'
+                'Analyze with Gemini'
               )}
             </button>
           </div>
