@@ -76,6 +76,13 @@ export async function POST(
       .delete()
       .eq('contract_id', id);
 
+    // Delete existing graph edges to prevent duplication
+    await supabase
+      .from('graph_edges')
+      .delete()
+      .eq('source_type', 'contract')
+      .eq('source_id', id);
+
     // Store each risk as a contract_clause with embedding
     await Promise.all(
       risks.map(async (risk) => {

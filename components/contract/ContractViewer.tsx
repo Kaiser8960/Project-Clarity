@@ -115,6 +115,8 @@ export default function ContractViewer({
                   />
                   Analyzing...
                 </>
+              ) : risks.length > 0 ? (
+                '🔄 Re-analyze'
               ) : (
                 'Analyze with Gemini'
               )}
