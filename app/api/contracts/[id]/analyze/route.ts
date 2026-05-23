@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeContract } from '@/lib/gemini';
-import { generateEmbedding } from '@/lib/embeddings';
 
 export async function POST(
   request: NextRequest,
@@ -83,57 +82,50 @@ export async function POST(
       .eq('source_type', 'contract')
       .eq('source_id', id);
 
-    // Store each risk as a contract_clause with embedding
-    await Promise.all(
-      risks.map(async (risk) => {
-        let embedding: number[] | null = null;
-        try {
-          embedding = await generateEmbedding(risk.clause_text);
-        } catch (err) {
-          console.error('Embedding generation failed:', err);
+    // Store each risk as a contract_clause.
+    // Embeddings are optional — if the embedding API fails, we still save the clause.
+    // Severity is forced to lowercase to satisfy Supabase column constraints.
+    for (const risk of risks) {
+      // Embeddings disabled: DB column is vector(768) but model returns 3072 dims.
+      // Re-enable after a proper migration. Clause data saves fine without it.
+      const embedding = null;
+
+      const { error: insertError } = await supabase.from('contract_clauses').insert({
+        user_id: user.id,
+        contract_id: id,
+        clause_text: risk.clause_text,
+        clause_reference: risk.clause_reference,
+        risk_type: risk.risk_type,
+        severity: (risk.severity || 'low').toLowerCase(),
+        explanation: risk.explanation,
+        embedding,
+      });
+
+      if (insertError) {
+        console.error('Failed to insert clause:', insertError.message, '| risk:', risk.risk_type);
+      }
+
+      // Create conflict graph edges for cross-document conflicts
+      if (risk.risk_type === 'cross-document-conflict' && risk.conflicting_document) {
+        const { data: conflictDoc } = await supabase
+          .from('documents')
+          .select('id')
+          .eq('name', risk.conflicting_document)
+          .single();
+
+        if (conflictDoc) {
+          await supabase.from('graph_edges').insert({
+            user_id: user.id,
+            source_type: 'contract',
+            source_id: id,
+            target_type: 'document',
+            target_id: conflictDoc.id,
+            edge_type: 'conflict',
+            conflict_description: risk.explanation,
+          });
         }
-
-        let finalSeverity = 'low';
-        if (risk.severity) {
-          const lower = risk.severity.toLowerCase();
-          if (['high', 'medium', 'low'].includes(lower)) {
-            finalSeverity = lower;
-          }
-        }
-
-        await supabase.from('contract_clauses').insert({
-          user_id: user.id,
-          contract_id: id,
-          clause_text: risk.clause_text,
-          clause_reference: risk.clause_reference,
-          risk_type: risk.risk_type,
-          severity: finalSeverity,
-          explanation: risk.explanation,
-          embedding,
-        });
-
-        // Create conflict graph edges for cross-document conflicts
-        if (risk.risk_type === 'cross-document-conflict' && risk.conflicting_document) {
-          const { data: conflictDoc } = await supabase
-            .from('documents')
-            .select('id')
-            .eq('name', risk.conflicting_document)
-            .single();
-
-          if (conflictDoc) {
-            await supabase.from('graph_edges').insert({
-              user_id: user.id,
-              source_type: 'contract',
-              source_id: id,
-              target_type: 'document',
-              target_id: conflictDoc.id,
-              edge_type: 'conflict',
-              conflict_description: risk.explanation,
-            });
-          }
-        }
-      })
-    );
+      }
+    }
 
     return NextResponse.json({ risks, count: risks.length }, { status: 200 });
   } catch (err: any) {

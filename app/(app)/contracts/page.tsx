@@ -9,6 +9,7 @@ import Link from 'next/link';
 
 export default function ContractsPage() {
   const [contracts, setContracts] = useState<Contract[]>([]);
+  const [analyzedIds, setAnalyzedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const supabase = createClient();
@@ -23,6 +24,15 @@ export default function ContractsPage() {
       .select('*')
       .order('created_at', { ascending: false });
     setContracts(data || []);
+
+    // Fetch which contracts have actual AI-analyzed clauses saved
+    const { data: clauses } = await supabase
+      .from('contract_clauses')
+      .select('contract_id');
+    if (clauses) {
+      setAnalyzedIds(new Set(clauses.map((c) => c.contract_id)));
+    }
+
     setLoading(false);
   };
 
@@ -143,7 +153,7 @@ export default function ContractsPage() {
             Analyzed
           </div>
           <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--retention-safe)' }}>
-            {contracts.filter((c) => c.raw_text).length}
+            {contracts.filter((c) => analyzedIds.has(c.id)).length}
           </div>
         </div>
         <div className="card-stat">

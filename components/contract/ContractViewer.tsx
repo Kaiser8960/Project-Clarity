@@ -94,33 +94,62 @@ export default function ContractViewer({
             </h2>
             <PipelineBar pipeline={pipeline} />
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              className="btn-primary"
-              onClick={onAnalyze}
-              disabled={analyzing}
-            >
-              {analyzing ? (
-                <>
-                  <span
-                    className="animate-spin"
-                    style={{
-                      width: '14px',
-                      height: '14px',
-                      border: '2px solid transparent',
-                      borderTop: '2px solid var(--bg-primary)',
-                      borderRadius: '50%',
-                      display: 'inline-block',
-                    }}
-                  />
-                  Analyzing...
-                </>
-              ) : risks.length > 0 ? (
-                '🔄 Re-analyze'
-              ) : (
-                'Analyze with Gemini'
-              )}
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {risks.length > 0 && !analyzing ? (
+              <>
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '12px',
+                    fontFamily: 'var(--font-mono)',
+                    color: 'var(--accent)',
+                    background: 'rgba(29,158,117,0.12)',
+                    border: '1px solid rgba(29,158,117,0.3)',
+                    borderRadius: '20px',
+                    padding: '4px 12px',
+                  }}
+                >
+                  <span style={{ fontSize: '10px' }}>✓</span>
+                  Analysis complete · {risks.length} risks
+                </span>
+                <button
+                  className="btn-ghost"
+                  onClick={onAnalyze}
+                  disabled={analyzing}
+                  title="Re-analyze contract"
+                  style={{ fontSize: '12px', padding: '6px 10px' }}
+                >
+                  🔄 Re-analyze
+                </button>
+              </>
+            ) : (
+              <button
+                className="btn-primary"
+                onClick={onAnalyze}
+                disabled={analyzing}
+              >
+                {analyzing ? (
+                  <>
+                    <span
+                      className="animate-spin"
+                      style={{
+                        width: '14px',
+                        height: '14px',
+                        border: '2px solid transparent',
+                        borderTop: '2px solid var(--bg-primary)',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                      }}
+                    />
+                    Analyzing...
+                  </>
+                ) : (
+                  '⚡ Analyze with Gemini'
+                )}
+              </button>
+            )}
           </div>
         </div>
 

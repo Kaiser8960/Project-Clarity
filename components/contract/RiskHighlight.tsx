@@ -10,18 +10,42 @@ interface RiskHighlightProps {
   onRiskClick: (index: number) => void;
 }
 
-// Helper to handle whitespace and smart quotes variations from AI outputs
-function getFuzzyRegex(clause: string) {
+// Helper to handle whitespace, smart quotes, and punctuation variations from AI outputs.
+// Pass 1: strict word-boundary matching (fast, accurate when text matches well).
+// Pass 2: alphanumeric-only core words with generous \W+ gaps (catches PDF encoding differences).
+function findClauseInText(clause: string, text: string): { start: number; length: number } | null {
+  const escapeSafe = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // Pass 1 — whitespace-tolerant, quote-normalized strict match
   try {
     const words = clause.trim().split(/\s+/).map(w => {
-      let escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      escaped = escaped.replace(/["“”'‘’]/g, '["“”\'‘’]');
-      return escaped;
+      let e = escapeSafe(w);
+      // Normalize curly/smart quotes to a plain quote so the regex still matches
+      e = e.replace(/[\u201C\u201D\u2018\u2019]/g, '.');
+      return e;
     });
-    return new RegExp(words.join('\\s+'), 'i');
-  } catch (e) {
-    return null;
-  }
+    const regex1 = new RegExp(words.join('\\s+'), 'i');
+    const m1 = regex1.exec(text);
+    if (m1) return { start: m1.index, length: m1[0].length };
+  } catch (_) { /* fall through */ }
+
+  // Pass 2 — strip all non-alphanumeric characters, allow any gap between core words
+  try {
+    const coreWords = clause.trim()
+      .split(/\s+/)
+      .map(w => w.replace(/[^a-zA-Z0-9]/g, ''))
+      .filter(w => w.length > 2); // skip tiny stop-word fragments
+
+    if (coreWords.length === 0) return null;
+
+    // Only use first ~12 words to keep regex from being catastrophically slow
+    const sample = coreWords.slice(0, 12).map(escapeSafe);
+    const regex2 = new RegExp(sample.join('[\\s\\S]{0,20}'), 'i');
+    const m2 = regex2.exec(text);
+    if (m2) return { start: m2.index, length: m2[0].length };
+  } catch (_) { /* give up */ }
+
+  return null;
 }
 
 export default function RiskHighlight({
@@ -54,15 +78,12 @@ export default function RiskHighlight({
   
   const mappedRisks = risks
     .map((r, i) => {
-      const regex = getFuzzyRegex(r.clause_text);
-      if (!regex) return { ...r, originalIndex: i, matchStart: -1, matchLength: 0 };
-      
-      const match = regex.exec(text);
-      return { 
-        ...r, 
-        originalIndex: i, 
-        matchStart: match ? match.index : -1, 
-        matchLength: match ? match[0].length : 0 
+      const match = findClauseInText(r.clause_text, text);
+      return {
+        ...r,
+        originalIndex: i,
+        matchStart: match ? match.start : -1,
+        matchLength: match ? match.length : 0,
       };
     })
     .filter((r) => r.matchStart !== -1)
