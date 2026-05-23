@@ -62,6 +62,17 @@ export default function KnowledgeGraph({
     }
   }, [onNodeClick]);
 
+  // Set link distance after graph mounts so nodes have space and labels don't overlap
+  const handleEngineStop = useCallback(() => {
+    if (graphRef.current) {
+      const force = graphRef.current.d3Force('link');
+      if (force) {
+        force.distance(180);
+        graphRef.current.d3ReheatSimulation();
+      }
+    }
+  }, []);
+
   return (
     <div
       ref={containerRef}
@@ -83,7 +94,7 @@ export default function KnowledgeGraph({
           nodeLabel="label"
           nodeColor={(node: any) => NODE_COLORS[node.type as keyof typeof NODE_COLORS]?.fill || '#999'}
           nodeCanvasObject={(node: any, ctx, globalScale) => {
-            const label = node.label.length > 18 ? node.label.slice(0, 16) + '...' : node.label;
+            const label = node.label.length > 22 ? node.label.slice(0, 20) + '…' : node.label;
             const fontSize = 12 / globalScale;
             ctx.font = `${fontSize}px "DM Mono", monospace`;
 
@@ -110,16 +121,17 @@ export default function KnowledgeGraph({
             ctx.strokeStyle = colors.border;
             ctx.stroke();
 
-            // Draw text label below the node
+            // Draw text label below the node with generous spacing
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = colors.text;
-            ctx.fillText(label, node.x, node.y + radius + fontSize);
+            ctx.fillText(label, node.x, node.y + radius + fontSize * 1.4);
           }}
           linkColor={(link: any) => EDGE_COLORS[link.type as keyof typeof EDGE_COLORS] || '#999'}
           linkWidth={(link: any) => link.type === 'conflict' ? 2 : 1}
           linkLineDash={(link: any) => link.type === 'conflict' ? [4, 4] : null}
           onNodeClick={handleNodeClick}
+          onEngineStop={handleEngineStop}
           d3AlphaDecay={0.02}
           d3VelocityDecay={0.3}
           warmupTicks={100}
@@ -140,6 +152,51 @@ export default function KnowledgeGraph({
           Upload contracts and run analysis to build the graph.
         </div>
       )}
+
+      {/* Legend overlay */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '16px',
+          left: '16px',
+          background: 'rgba(10,15,25,0.85)',
+          border: '0.5px solid var(--border)',
+          borderRadius: '8px',
+          padding: '10px 14px',
+          backdropFilter: 'blur(8px)',
+          fontSize: '11px',
+          fontFamily: 'var(--font-mono)',
+          color: 'var(--text-secondary)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+          pointerEvents: 'none',
+        }}
+      >
+        <span style={{ color: 'var(--text-muted)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>
+          Legend
+        </span>
+        {[
+          { color: '#7DDECB', label: 'Contract' },
+          { color: '#AFA9EC', label: 'Linked Document' },
+          { color: '#7CC93E', label: 'Risk Clause' },
+        ].map(({ color, label }) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: color, flexShrink: 0, display: 'inline-block', border: `1.5px solid ${color}` }} />
+            {label}
+          </div>
+        ))}
+        <div style={{ borderTop: '0.5px solid var(--border)', marginTop: '2px', paddingTop: '6px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: '18px', height: '1.5px', background: '#1D9E75', display: 'inline-block', flexShrink: 0 }} />
+            Linked
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: '18px', height: '1.5px', background: '#A32D2D', display: 'inline-block', flexShrink: 0, borderTop: '2px dashed #A32D2D', boxSizing: 'border-box' }} />
+            Conflict
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
