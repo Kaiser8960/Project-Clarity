@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { FileText, FolderOpen, Network, LogOut } from 'lucide-react';
 
 const navItems = [
-  { href: '/contracts', label: 'Contracts', icon: '📋' },
-  { href: '/documents', label: 'Documents', icon: '📁' },
-  { href: '/graph', label: 'Knowledge Graph', icon: '🔗' },
+  { href: '/contracts', label: 'Contracts', icon: <FileText size={16} /> },
+  { href: '/documents', label: 'Documents', icon: <FolderOpen size={16} /> },
+  { href: '/graph', label: 'Knowledge Graph', icon: <Network size={16} /> },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -92,7 +93,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   transition: 'all 0.15s ease',
                 }}
               >
-                <span style={{ fontSize: '16px' }}>{item.icon}</span>
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: isActive ? 'var(--accent)' : 'var(--text-muted)',
+                  }}
+                >
+                  {item.icon}
+                </span>
                 {item.label}
               </Link>
             );
@@ -109,9 +118,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <button
             onClick={handleSignOut}
             className="btn-ghost"
-            style={{ width: '100%', justifyContent: 'flex-start', fontSize: '13px' }}
+            style={{ width: '100%', justifyContent: 'flex-start', fontSize: '13px', gap: '8px' }}
           >
-            ← Sign out
+            <LogOut size={14} />
+            Sign out
           </button>
         </div>
       </aside>

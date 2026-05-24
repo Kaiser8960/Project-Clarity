@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState, useRef } from 'react';
+import { UploadCloud } from 'lucide-react';
 
 interface UploadDropzoneProps {
   onUpload: (files: File[]) => void;
@@ -59,13 +60,15 @@ export default function UploadDropzone({
       />
       <div
         style={{
-          fontSize: '32px',
           marginBottom: '12px',
-          opacity: isDragActive ? 1 : 0.5,
+          opacity: isDragActive ? 1 : 0.4,
           transition: 'opacity 0.2s ease',
+          color: isDragActive ? 'var(--accent)' : 'var(--text-muted)',
+          display: 'flex',
+          justifyContent: 'center',
         }}
       >
-        📁
+        <UploadCloud size={36} />
       </div>
       <p
         style={{
