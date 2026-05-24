@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { countWords, extractTextFromPdf } from '@/lib/ocr';
+import { extractExpiryDate } from '@/lib/gemini';
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,6 +47,19 @@ export async function POST(request: NextRequest) {
 
     const wordCount = rawText ? countWords(rawText) : 0;
 
+    // Extract expiry date using Gemini
+    let expiryDate = null;
+    if (rawText) {
+      try {
+        expiryDate = await extractExpiryDate(rawText);
+        if (expiryDate) {
+          console.log(`[Contract Upload] Auto-detected expiry date: ${expiryDate}`);
+        }
+      } catch (err) {
+        console.error('Failed to extract expiry date from contract:', err);
+      }
+    }
+
     // Insert contract record
     const { data: contract, error: insertError } = await supabase
       .from('contracts')
@@ -55,6 +69,7 @@ export async function POST(request: NextRequest) {
         file_path: fileName,
         raw_text: rawText,
         word_count: wordCount,
+        ...(expiryDate ? { expiry_date: expiryDate } : {}),
       })
       .select()
       .single();
