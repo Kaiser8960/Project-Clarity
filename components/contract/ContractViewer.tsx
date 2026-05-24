@@ -6,6 +6,7 @@ import RiskPanel from './RiskPanel';
 import PipelineBar from './PipelineBar';
 import LinkedDocsSidebar from './LinkedDocsSidebar';
 import { useState } from 'react';
+import { RefreshCw, Zap, CalendarDays } from 'lucide-react';
 
 interface ContractViewerProps {
   contractName: string;
@@ -47,6 +48,7 @@ export default function ContractViewer({
           flexShrink: 0,
         }}
       >
+        {/* Sidebar header */}
         <div
           style={{
             padding: '16px',
@@ -67,6 +69,30 @@ export default function ContractViewer({
             Navigation
           </h3>
         </div>
+
+        {/* Pipeline — moved from toolbar to sidebar for breathing room */}
+        <div
+          style={{
+            padding: '16px',
+            borderBottom: '0.5px solid var(--border)',
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--text-muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              marginBottom: '12px',
+            }}
+          >
+            Analysis Status
+          </div>
+          <PipelineBar pipeline={pipeline} />
+        </div>
+
         <LinkedDocsSidebar
           documents={linkedDocuments}
           availableDocuments={availableDocuments}
@@ -76,7 +102,7 @@ export default function ContractViewer({
 
       {/* Center panel — Contract text */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        {/* Top toolbar */}
+        {/* Minimal toolbar — filename + single action button only */}
         <div
           style={{
             padding: '12px 20px',
@@ -88,69 +114,68 @@ export default function ContractViewer({
             flexShrink: 0,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>
-              {contractName}
-            </h2>
-            <PipelineBar pipeline={pipeline} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {risks.length > 0 && !analyzing ? (
-              <>
-                <span
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '12px',
-                    fontFamily: 'var(--font-mono)',
-                    color: 'var(--accent)',
-                    background: 'rgba(29,158,117,0.12)',
-                    border: '1px solid rgba(29,158,117,0.3)',
-                    borderRadius: '20px',
-                    padding: '4px 12px',
-                  }}
-                >
-                  <span style={{ fontSize: '10px' }}>✓</span>
-                  Analysis complete · {risks.length} risks
-                </span>
-                <button
-                  className="btn-ghost"
-                  onClick={onAnalyze}
-                  disabled={analyzing}
-                  title="Re-analyze contract"
-                  style={{ fontSize: '12px', padding: '6px 10px' }}
-                >
-                  🔄 Re-analyze
-                </button>
-              </>
-            ) : (
-              <button
-                className="btn-primary"
-                onClick={onAnalyze}
-                disabled={analyzing}
-              >
-                {analyzing ? (
-                  <>
-                    <span
-                      className="animate-spin"
-                      style={{
-                        width: '14px',
-                        height: '14px',
-                        border: '2px solid transparent',
-                        borderTop: '2px solid var(--bg-primary)',
-                        borderRadius: '50%',
-                        display: 'inline-block',
-                      }}
-                    />
-                    Analyzing...
-                  </>
-                ) : (
-                  '⚡ Analyze with Gemini'
-                )}
-              </button>
-            )}
-          </div>
+          <h2
+            style={{
+              fontSize: '15px',
+              fontWeight: 500,
+              margin: 0,
+              color: 'var(--text-primary)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '60%',
+            }}
+          >
+            {contractName}
+          </h2>
+
+          {risks.length > 0 && !analyzing ? (
+            <button
+              className="btn-ghost"
+              onClick={onAnalyze}
+              disabled={analyzing}
+              title="Re-analyze contract"
+              style={{
+                fontSize: '13px',
+                padding: '6px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <RefreshCw size={13} />
+              Re-analyze
+            </button>
+          ) : (
+            <button
+              className="btn-primary"
+              onClick={onAnalyze}
+              disabled={analyzing}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              {analyzing ? (
+                <>
+                  <span
+                    className="animate-spin"
+                    style={{
+                      width: '14px',
+                      height: '14px',
+                      border: '2px solid transparent',
+                      borderTop: '2px solid var(--bg-primary)',
+                      borderRadius: '50%',
+                      display: 'inline-block',
+                    }}
+                  />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Zap size={14} />
+                  Analyze with AI
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Contract text */}
@@ -181,7 +206,7 @@ export default function ContractViewer({
           flexShrink: 0,
         }}
       >
-        {/* Header Title instead of Tabs */}
+        {/* Header */}
         <div
           style={{
             display: 'flex',
@@ -222,9 +247,13 @@ export default function ContractViewer({
               fontFamily: 'var(--font-mono)',
               color: 'var(--text-muted)',
               background: 'var(--bg-card)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            🗓 Retention: expires{' '}
+            <CalendarDays size={13} />
+            Retention: expires{' '}
             {new Date(expiryDate).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',

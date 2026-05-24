@@ -6,12 +6,14 @@ import { Contract } from '@/types';
 import { getRetentionStatus } from '@/lib/retention';
 import RetentionPill from '@/components/dms/RetentionPill';
 import Link from 'next/link';
+import { FileText, Trash2 } from 'lucide-react';
 
 export default function ContractsPage() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [analyzedIds, setAnalyzedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -56,6 +58,12 @@ export default function ContractsPage() {
       console.error('Upload failed:', err);
     }
     setUploading(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    await fetch(`/api/contracts/${id}`, { method: 'DELETE' });
+    setContracts((prev) => prev.filter((c) => c.id !== id));
+    setConfirmingDeleteId(null);
   };
 
   return (
@@ -188,7 +196,9 @@ export default function ContractsPage() {
             color: 'var(--text-muted)',
           }}
         >
-          <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>📋</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', opacity: 0.3 }}>
+            <FileText size={48} color="var(--text-muted)" />
+          </div>
           <h3 style={{ fontSize: '18px', fontWeight: 500, margin: '0 0 8px 0', color: 'var(--text-secondary)' }}>
             No contracts yet
           </h3>
@@ -199,19 +209,29 @@ export default function ContractsPage() {
       ) : (
         <div style={{ display: 'grid', gap: '12px' }}>
           {contracts.map((contract, i) => (
-            <Link
+            <div
               key={contract.id}
-              href={`/contracts/${contract.id}`}
               className="card animate-fade-in"
               style={{
-                textDecoration: 'none',
                 animationDelay: `${i * 50}ms`,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                padding: '14px 16px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              {/* Left: clickable link area */}
+              <Link
+                href={`/contracts/${contract.id}`}
+                style={{
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  flex: 1,
+                  minWidth: 0,
+                }}
+              >
                 <div
                   style={{
                     width: '40px',
@@ -222,20 +242,14 @@ export default function ContractsPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '18px',
                     flexShrink: 0,
+                    color: 'var(--accent)',
                   }}
                 >
-                  📋
+                  <FileText size={18} />
                 </div>
-                <div>
-                  <div
-                    style={{
-                      fontSize: '15px',
-                      fontWeight: 500,
-                      color: 'var(--text-primary)',
-                    }}
-                  >
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: '15px', fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {contract.name}
                   </div>
                   <div
@@ -248,22 +262,48 @@ export default function ContractsPage() {
                       marginTop: '2px',
                     }}
                   >
+                    <span>{contract.word_count ? `${contract.word_count.toLocaleString()} words` : 'No text'}</span>
                     <span>
-                      {contract.word_count
-                        ? `${contract.word_count.toLocaleString()} words`
-                        : 'No text'}
-                    </span>
-                    <span>
-                      {new Date(contract.upload_date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
+                      {new Date(contract.upload_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
                 </div>
+              </Link>
+
+              {/* Right: retention + delete */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, marginLeft: '16px' }}>
+                <RetentionPill status={getRetentionStatus(contract.expiry_date)} />
+
+                {confirmingDeleteId === contract.id ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Delete?</span>
+                    <button
+                      className="btn-ghost"
+                      onClick={() => handleDelete(contract.id)}
+                      style={{ fontSize: '12px', padding: '4px 10px', color: 'var(--risk-high-text)' }}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      className="btn-ghost"
+                      onClick={() => setConfirmingDeleteId(null)}
+                      style={{ fontSize: '12px', padding: '4px 10px' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className="btn-ghost"
+                    onClick={() => setConfirmingDeleteId(contract.id)}
+                    style={{ padding: '6px', color: 'var(--text-muted)' }}
+                    title="Delete contract"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                )}
               </div>
-              <RetentionPill status={getRetentionStatus(contract.expiry_date)} />
-            </Link>
+            </div>
           ))}
         </div>
       )}

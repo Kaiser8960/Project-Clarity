@@ -3,6 +3,7 @@
 import { Document } from '@/types';
 import RetentionPill from './RetentionPill';
 import { getRetentionStatus } from '@/lib/retention';
+import { FileText, Image, Trash2, CalendarDays } from 'lucide-react';
 
 interface DocumentTableProps {
   documents: Document[];
@@ -51,8 +52,8 @@ export default function DocumentTable({
                 <tr key={doc.id}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '16px' }}>
-                        {doc.file_type === 'pdf' ? '📄' : '🖼️'}
+                      <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
+                        {doc.file_type === 'pdf' ? <FileText size={16} /> : <Image size={16} />}
                       </span>
                       <div>
                         <div style={{ fontWeight: 500 }}>{doc.name}</div>
@@ -147,7 +148,7 @@ export default function DocumentTable({
                           onClick={() => onRetention(doc.id)}
                           style={{ fontSize: '12px', padding: '4px 8px' }}
                         >
-                          🗓
+                          <CalendarDays size={13} />
                         </button>
                       )}
                       {onDelete && (
@@ -160,7 +161,7 @@ export default function DocumentTable({
                             color: 'var(--risk-high-text)',
                           }}
                         >
-                          🗑
+                          <Trash2 size={13} />
                         </button>
                       )}
                     </div>

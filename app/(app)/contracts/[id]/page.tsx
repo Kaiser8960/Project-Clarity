@@ -18,10 +18,10 @@ export default function ContractDetailPage({
   const [analyzing, setAnalyzing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState<PipelineState[]>([
-    { step: 'text-extract', status: 'pending', label: 'Text extract' },
-    { step: 'ocr-docs', status: 'pending', label: 'OCR docs' },
-    { step: 'gemini-analysis', status: 'pending', label: 'Gemini analysis' },
-    { step: 'risks-ready', status: 'pending', label: 'Risks ready' },
+    { step: 'text-extract', status: 'pending', label: 'Text Ready' },
+    { step: 'ocr-docs', status: 'pending', label: 'Docs Linked' },
+    { step: 'gemini-analysis', status: 'pending', label: 'AI Analysis' },
+    { step: 'risks-ready', status: 'pending', label: 'Risks Found' },
   ]);
   const supabase = createClient();
 

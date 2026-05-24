@@ -3,6 +3,7 @@
 import { Document } from '@/types';
 import { getRetentionStatus, getRetentionClass, getRetentionLabel } from '@/lib/retention';
 import { useState } from 'react';
+import { FileText } from 'lucide-react';
 
 interface LinkedDocsSidebarProps {
   documents: Document[];
@@ -78,11 +79,11 @@ export default function LinkedDocsSidebar({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '12px',
                     flexShrink: 0,
+                    color: 'var(--accent)',
                   }}
                 >
-                  📄
+                  <FileText size={13} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
