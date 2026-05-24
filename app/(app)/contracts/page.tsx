@@ -275,7 +275,7 @@ export default function ContractsPage() {
                 <RetentionPill status={getRetentionStatus(contract.expiry_date)} />
 
                 {confirmingDeleteId === contract.id ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div className="animate-expand-x" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Delete?</span>
                     <button
                       className="btn-ghost"

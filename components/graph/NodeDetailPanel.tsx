@@ -71,10 +71,27 @@ export default function NodeDetailPanel({ node, onClose }: NodeDetailPanelProps)
           fontSize: '12px',
           fontFamily: 'var(--font-mono)',
           color: 'var(--text-muted)',
+          marginBottom: '16px',
         }}
       >
         ID: {node.id.slice(0, 8)}...
       </div>
+
+      {node.description && (
+        <div
+          style={{
+            fontSize: '14px',
+            color: 'var(--text-secondary)',
+            lineHeight: 1.6,
+            background: 'var(--bg-surface)',
+            padding: '12px',
+            borderRadius: '6px',
+            border: '0.5px solid var(--border)',
+          }}
+        >
+          {node.description}
+        </div>
+      )}
     </div>
   );
 }

@@ -24,17 +24,17 @@ export default function GraphPage() {
     // Get all contracts
     const { data: contracts } = await supabase
       .from('contracts')
-      .select('id, name');
+      .select('id, name, word_count');
 
     // Get all documents
     const { data: documents } = await supabase
       .from('documents')
-      .select('id, name');
+      .select('id, name, file_type');
 
     // Get all clauses
     const { data: clauses } = await supabase
       .from('contract_clauses')
-      .select('id, clause_text, clause_reference, contract_id');
+      .select('id, clause_text, clause_reference, explanation, contract_id');
 
     // Get all AI conflict edges
     const { data: graphEdges } = await supabase
@@ -51,16 +51,19 @@ export default function GraphPage() {
         id: c.id,
         type: 'contract' as const,
         label: c.name,
+        description: c.word_count ? `${c.word_count.toLocaleString()} words` : 'Contract Document',
       })),
       ...(documents || []).map((d) => ({
         id: d.id,
         type: 'document' as const,
         label: d.name,
+        description: `Linked File (${d.file_type || 'Unknown format'})`,
       })),
       ...(clauses || []).map((c) => ({
         id: c.id,
         type: 'clause' as const,
         label: c.clause_reference || c.clause_text.slice(0, 30) + '...',
+        description: c.explanation || c.clause_text,
       })),
     ];
 

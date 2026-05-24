@@ -4,6 +4,7 @@ import { Document } from '@/types';
 import { getRetentionStatus, getRetentionClass, getRetentionLabel } from '@/lib/retention';
 import { useState } from 'react';
 import { FileText } from 'lucide-react';
+import AnimatedDropdown from '../ui/AnimatedDropdown';
 
 interface LinkedDocsSidebarProps {
   documents: Document[];
@@ -142,31 +143,17 @@ export default function LinkedDocsSidebar({
           >
             + Link Document
           </div>
-          <select
-            value={selectedDocId}
-            onChange={(e) => setSelectedDocId(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: '6px',
-              border: '1px solid var(--border)',
-              background: 'var(--bg-elevated)',
-              color: 'var(--text-primary)',
-              fontSize: '13px',
-              marginBottom: '12px',
-              appearance: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            <option value="" disabled>
-              Select a document...
-            </option>
-            {availableDocuments.map((doc) => (
-              <option key={doc.id} value={doc.id}>
-                {doc.name}
-              </option>
-            ))}
-          </select>
+          <div style={{ marginBottom: '12px' }}>
+            <AnimatedDropdown
+              options={availableDocuments.map((doc) => ({
+                value: doc.id,
+                label: doc.name,
+              }))}
+              value={selectedDocId}
+              onChange={setSelectedDocId}
+              placeholder="Select a document..."
+            />
+          </div>
           <button
             onClick={handleLink}
             disabled={!selectedDocId || linking}

@@ -78,6 +78,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
+                className={`nav-item ${isActive ? 'active' : ''}`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -87,10 +88,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   fontSize: '14px',
                   fontWeight: isActive ? 500 : 400,
                   color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                  background: isActive ? 'var(--accent-glow)' : 'transparent',
+                  background: isActive ? 'var(--accent-glow)' : undefined,
                   textDecoration: 'none',
                   marginBottom: '2px',
-                  transition: 'all 0.15s ease',
                 }}
               >
                 <span

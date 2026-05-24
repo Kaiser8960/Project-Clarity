@@ -38,7 +38,10 @@ export default function KnowledgeGraph({
 
   // Map nodes and edges for ForceGraph
   const graphData = {
-    nodes: nodes.map(n => ({ ...n, val: n.type === 'clause' ? 1.5 : 2.5 })), // Adjust node size based on type
+    nodes: nodes.map(n => ({ 
+      ...n, 
+      val: n.type === 'contract' ? 3.5 : n.type === 'document' ? 2.5 : 1.5 
+    })), // Adjust node size based on type
     links: edges.map(e => ({ ...e, source: e.source, target: e.target }))
   };
 

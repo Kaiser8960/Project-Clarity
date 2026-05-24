@@ -4,6 +4,7 @@ import { Document } from '@/types';
 import RetentionPill from './RetentionPill';
 import { getRetentionStatus } from '@/lib/retention';
 import { FileText, Image, Trash2, CalendarDays } from 'lucide-react';
+import { useState } from 'react';
 
 interface DocumentTableProps {
   documents: Document[];
@@ -18,6 +19,8 @@ export default function DocumentTable({
   onRetention,
   onProcess,
 }: DocumentTableProps) {
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+
   return (
     <div className="table-container">
       <table className="data-table">
@@ -152,17 +155,40 @@ export default function DocumentTable({
                         </button>
                       )}
                       {onDelete && (
-                        <button
-                          className="btn-ghost"
-                          onClick={() => onDelete(doc.id)}
-                          style={{
-                            fontSize: '12px',
-                            padding: '4px 8px',
-                            color: 'var(--risk-high-text)',
-                          }}
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                        confirmingDeleteId === doc.id ? (
+                          <div className="animate-expand-x" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Delete?</span>
+                            <button
+                              className="btn-ghost"
+                              onClick={() => {
+                                onDelete(doc.id);
+                                setConfirmingDeleteId(null);
+                              }}
+                              style={{ fontSize: '11px', padding: '4px 8px', color: 'var(--risk-high-text)' }}
+                            >
+                              Yes
+                            </button>
+                            <button
+                              className="btn-ghost"
+                              onClick={() => setConfirmingDeleteId(null)}
+                              style={{ fontSize: '11px', padding: '4px 8px' }}
+                            >
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className="btn-ghost"
+                            onClick={() => setConfirmingDeleteId(doc.id)}
+                            style={{
+                              fontSize: '12px',
+                              padding: '4px 8px',
+                              color: 'var(--risk-high-text)',
+                            }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )
                       )}
                     </div>
                   </td>
