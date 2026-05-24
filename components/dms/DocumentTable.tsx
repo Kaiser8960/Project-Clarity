@@ -98,7 +98,17 @@ export default function DocumentTable({
                     </span>
                   </td>
                   <td style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
-                    —
+                    {Array.isArray((doc as any).contract_documents) && (doc as any).contract_documents.length > 0 ? (
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        background: 'rgba(125,222,203,0.1)',
+                        color: 'var(--accent)',
+                        fontSize: '11px',
+                      }}>
+                        {(doc as any).contract_documents.length} contract{(doc as any).contract_documents.length !== 1 ? 's' : ''}
+                      </span>
+                    ) : '—'}
                   </td>
                   <td
                     style={{

@@ -123,3 +123,67 @@ ${crossDocInstruction}
     throw err;
   }
 }
+/**
+ * Scans OCR'd document text for an expiration or validity date.
+ * Returns the date in YYYY-MM-DD format, or null if none is found.
+ */
+export async function extractExpiryDate(
+  text: string,
+  imageBuffer?: Buffer,
+  mimeType?: string
+): Promise<string | null> {
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const prompt = `You are a document data extraction assistant.
+Read the following text extracted from a scanned document (e.g. an ID, license, permit, or certificate).
+If an image is attached, rely heavily on the image to find the expiration date.
+
+Your only task: find the expiration date, validity date, or "valid until" date if one exists.
+
+Rules:
+- Return ONLY a valid date in the format: YYYY-MM-DD
+- If no expiration date is present, return exactly: null
+- Do not return any explanation, markdown, or extra text. Just the date string or the word null.
+
+DOCUMENT TEXT:
+${text}`;
+
+    const parts: any[] = [{ text: prompt }];
+
+    if (imageBuffer && mimeType) {
+      parts.unshift({
+        inlineData: {
+          data: imageBuffer.toString('base64'),
+          mimeType,
+        },
+      });
+    }
+
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts }],
+      generationConfig: { temperature: 0, maxOutputTokens: 256 },
+    });
+
+    const raw = result.response.text().trim();
+    console.log('[extractExpiryDate] Raw Gemini response:', JSON.stringify(raw));
+
+    if (!raw || raw.toLowerCase() === 'null') return null;
+
+    // Validate the returned value looks like a date anywhere in the string
+    const dateRegex = /\d{4}-\d{2}-\d{2}/;
+    const match = raw.match(dateRegex);
+    if (match) return match[0];
+
+    // Attempt loose parse as fallback
+    const parsed = new Date(raw);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toISOString().split('T')[0];
+    }
+
+    return null;
+  } catch (err) {
+    console.warn('Expiry date extraction skipped:', (err as Error).message);
+    return null;
+  }
+}

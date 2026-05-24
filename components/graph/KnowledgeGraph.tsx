@@ -62,16 +62,20 @@ export default function KnowledgeGraph({
     }
   }, [onNodeClick]);
 
-  // Set link distance after graph mounts so nodes have space and labels don't overlap
-  const handleEngineStop = useCallback(() => {
-    if (graphRef.current) {
+  // Pre-configure link distance BEFORE the engine starts so spacing is correct on the first frame.
+  // Using onEngineStop caused the graph to start squished and expand later — this prevents that.
+  useEffect(() => {
+    if (graphRef.current && graphData.nodes.length > 0) {
       const force = graphRef.current.d3Force('link');
       if (force) {
         force.distance(180);
-        graphRef.current.d3ReheatSimulation();
+      }
+      const chargeForce = graphRef.current.d3Force('charge');
+      if (chargeForce) {
+        chargeForce.strength(-120);
       }
     }
-  }, []);
+  }, [graphData.nodes.length]);
 
   return (
     <div
@@ -131,7 +135,6 @@ export default function KnowledgeGraph({
           linkWidth={(link: any) => link.type === 'conflict' ? 2 : 1}
           linkLineDash={(link: any) => link.type === 'conflict' ? [4, 4] : null}
           onNodeClick={handleNodeClick}
-          onEngineStop={handleEngineStop}
           d3AlphaDecay={0.02}
           d3VelocityDecay={0.3}
           warmupTicks={100}

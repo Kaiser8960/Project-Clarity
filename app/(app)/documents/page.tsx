@@ -20,7 +20,7 @@ export default function DocumentsPage() {
   const fetchDocuments = async () => {
     const { data } = await supabase
       .from('documents')
-      .select('*')
+      .select('*, contract_documents(contract_id)')
       .order('created_at', { ascending: false });
     setDocuments((data as Document[]) || []);
     setLoading(false);
@@ -37,11 +37,11 @@ export default function DocumentsPage() {
         });
         const data = await res.json();
         
-        // Immediately trigger text extraction
+        // Trigger OCR text extraction and AWAIT it so expiry_date is saved before we refresh
         if (data.document && data.document.id) {
-          fetch(`/api/documents/${data.document.id}/ocr`, {
+          await fetch(`/api/documents/${data.document.id}/ocr`, {
             method: 'POST',
-          }).then(() => fetchDocuments());
+          });
         }
       } catch (err) {
         console.error('Upload failed:', err);

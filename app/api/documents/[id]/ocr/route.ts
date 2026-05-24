@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { extractTextFromPdf, ocrFromImage, countWords } from '@/lib/ocr';
 import { generateEmbedding, chunkText } from '@/lib/embeddings';
+import { extractExpiryDate } from '@/lib/gemini';
 
 export async function POST(
   request: NextRequest,
@@ -68,6 +69,15 @@ export async function POST(
     // Chunk the text and store with embeddings
     const chunks = chunkText(extractedText);
 
+    // Run expiry date extraction in parallel with chunking (non-blocking)
+    // Pass the image buffer to Gemini Vision if it's an image
+    const mimeType = doc.file_type === 'png' ? 'image/png' : doc.file_type === 'jpg' ? 'image/jpeg' : undefined;
+    const expiryDatePromise = extractExpiryDate(
+      extractedText,
+      mimeType ? buffer : undefined,
+      mimeType
+    );
+
     // Delete existing chunks
     await supabase.from('document_chunks').delete().eq('document_id', id);
 
@@ -88,6 +98,12 @@ export async function POST(
       });
     }
 
+    // Resolve expiry date (already running in parallel)
+    const expiryDate = await expiryDatePromise;
+    if (expiryDate) {
+      console.log(`[OCR] Auto-detected expiry date for document ${id}: ${expiryDate}`);
+    }
+
     // Update document with extraction results
     await supabase
       .from('documents')
@@ -95,6 +111,7 @@ export async function POST(
         extraction_method: extractionMethod,
         ocr_status: 'done',
         word_count: countWords(extractedText),
+        ...(expiryDate ? { expiry_date: expiryDate } : {}),
       })
       .eq('id', id);
 
@@ -102,6 +119,7 @@ export async function POST(
       method: extractionMethod,
       chunks: chunks.length,
       wordCount: countWords(extractedText),
+      expiryDate,
     });
   } catch (err) {
     console.error('OCR error:', err);
