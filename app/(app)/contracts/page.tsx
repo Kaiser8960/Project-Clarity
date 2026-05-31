@@ -67,7 +67,7 @@ export default function ContractsPage() {
   };
 
   return (
-    <div style={{ padding: '32px 40px' }}>
+    <div className="page-wrapper" style={{ padding: '32px 40px' }}>
       {/* Header */}
       <div
         style={{
@@ -123,6 +123,7 @@ export default function ContractsPage() {
 
       {/* Stats */}
       <div
+        className="card-stat-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',

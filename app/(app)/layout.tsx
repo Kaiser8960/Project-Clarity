@@ -26,6 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       {/* Sidebar */}
       <aside
+        className="sidebar"
         style={{
           width: '220px',
           background: 'var(--bg-surface)',
@@ -130,6 +131,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main style={{ flex: 1, minWidth: 0 }}>
         {children}
       </main>
+
+      {/* Bottom navigation — mobile only */}
+      <nav className="bottom-nav">
+        {navItems.map((item) => {
+          const isActive = pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`bottom-nav-item ${isActive ? 'active' : ''}`}
+            >
+              <span style={{ display: 'flex', alignItems: 'center' }}>
+                {item.icon}
+              </span>
+              {item.label === 'Knowledge Graph' ? 'Graph' : item.label}
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }

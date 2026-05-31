@@ -122,7 +122,22 @@ export default function GraphPage() {
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
       {/* Main graph area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div className="graph-canvas-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Mobile stat chips — hidden on desktop via CSS */}
+        <div className="graph-stat-chips" style={{ display: 'none' }}>
+          {[
+            { label: 'Contracts', value: contractCount, color: '#7DDECB' },
+            { label: 'Documents', value: documentCount, color: '#AFA9EC' },
+            { label: 'Clauses', value: clauseCount, color: '#7CC93E' },
+            { label: 'Conflicts', value: conflictCount, color: '#A32D2D' },
+          ].map((s) => (
+            <div key={s.label} className="graph-stat-chip">
+              <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: s.color, display: 'inline-block' }} />
+              {s.label}: <strong style={{ color: s.color }}>{s.value}</strong>
+            </div>
+          ))}
+        </div>
+
         {/* Header */}
         <div
           style={{
@@ -213,8 +228,9 @@ export default function GraphPage() {
         </div>
       </div>
 
-      {/* Right sidebar */}
+      {/* Right sidebar — desktop only */}
       <div
+        className="graph-sidebar"
         style={{
           width: '280px',
           borderLeft: '0.5px solid var(--border)',
@@ -313,6 +329,34 @@ export default function GraphPage() {
           )}
         </div>
       </div>
+
+      {/* Mobile bottom sheet — shows when a node is selected, hidden on desktop via CSS */}
+      {selectedNode && (
+        <div className="graph-bottom-sheet">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                {selectedNode.type}
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                {selectedNode.label}
+              </div>
+            </div>
+            <button
+              className="btn-ghost"
+              onClick={() => setSelectedNode(null)}
+              style={{ padding: '4px 8px', flexShrink: 0 }}
+            >
+              ✕
+            </button>
+          </div>
+          {selectedNode.description && (
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
+              {selectedNode.description}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

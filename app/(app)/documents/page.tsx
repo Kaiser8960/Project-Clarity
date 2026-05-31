@@ -95,7 +95,7 @@ export default function DocumentsPage() {
   ];
 
   return (
-    <div style={{ padding: '32px 40px' }}>
+    <div className="page-wrapper" style={{ padding: '32px 40px' }}>
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
         <h1
@@ -115,6 +115,7 @@ export default function DocumentsPage() {
 
       {/* Stat cards */}
       <div
+        className="card-stat-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
@@ -149,7 +150,7 @@ export default function DocumentsPage() {
       </div>
 
       {/* Tab filters */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+      <div className="filter-pill-row" style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
         {tabs.map((tab) => (
           <button
             key={tab.id}

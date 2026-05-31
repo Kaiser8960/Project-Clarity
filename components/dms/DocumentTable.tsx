@@ -22,6 +22,7 @@ export default function DocumentTable({
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
 
   return (
+    <>
     <div className="table-container">
       <table className="data-table">
         <thead>
@@ -199,5 +200,108 @@ export default function DocumentTable({
         </tbody>
       </table>
     </div>
+
+    {/* Mobile card list — hidden on desktop via CSS */}
+    <div className="doc-mobile-list">
+      {documents.length === 0 ? (
+        <div style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>
+          No documents uploaded yet
+        </div>
+      ) : (
+        documents.map((doc) => {
+          const status = getRetentionStatus(doc.expiry_date);
+          const extractionLabel =
+            doc.extraction_method === 'ocr'
+              ? 'OCR'
+              : doc.extraction_method === 'digital'
+              ? 'Digital'
+              : doc.ocr_status === 'processing'
+              ? 'Processing...'
+              : 'Pending';
+
+          return (
+            <div key={doc.id} className="doc-mobile-card">
+              {/* Filename */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                  {doc.file_type === 'pdf' ? <FileText size={15} /> : <Image size={15} />}
+                </span>
+                <div className="doc-mobile-card-name">{doc.name}</div>
+              </div>
+
+              {/* Meta row */}
+              <div className="doc-mobile-card-meta">
+                <span
+                  style={{
+                    padding: '1px 6px',
+                    borderRadius: '4px',
+                    background: doc.extraction_method === 'ocr' ? 'rgba(83,74,183,0.15)' : 'rgba(61,171,142,0.15)',
+                    color: doc.extraction_method === 'ocr' ? 'var(--risk-crossdoc-text)' : 'var(--retention-safe)',
+                  }}
+                >
+                  {extractionLabel}
+                </span>
+                <span>
+                  {new Date(doc.upload_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
+                {doc.file_size_bytes && <span>{(doc.file_size_bytes / 1024).toFixed(0)} KB</span>}
+              </div>
+
+              {/* Actions row */}
+              <div className="doc-mobile-card-actions">
+                <RetentionPill status={status} />
+
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px', alignItems: 'center' }}>
+                  {(doc.ocr_status === 'pending' || doc.ocr_status === 'failed') && onProcess && (
+                    <button
+                      className="btn-ghost"
+                      onClick={() => onProcess(doc.id)}
+                      style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '4px 8px', color: 'var(--accent)' }}
+                    >
+                      PROCESS
+                    </button>
+                  )}
+                  {onRetention && (
+                    <button className="btn-ghost" onClick={() => onRetention(doc.id)} style={{ padding: '4px 8px' }}>
+                      <CalendarDays size={14} />
+                    </button>
+                  )}
+                  {onDelete && (
+                    confirmingDeleteId === doc.id ? (
+                      <div className="animate-expand-x" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Delete?</span>
+                        <button
+                          className="btn-ghost"
+                          onClick={() => { onDelete(doc.id); setConfirmingDeleteId(null); }}
+                          style={{ fontSize: '11px', padding: '4px 8px', color: 'var(--risk-high-text)' }}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          className="btn-ghost"
+                          onClick={() => setConfirmingDeleteId(null)}
+                          style={{ fontSize: '11px', padding: '4px 8px' }}
+                        >
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        className="btn-ghost"
+                        onClick={() => setConfirmingDeleteId(doc.id)}
+                        style={{ padding: '4px 8px', color: 'var(--risk-high-text)' }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  </>
   );
 }

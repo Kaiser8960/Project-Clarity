@@ -585,3 +585,248 @@ body {
 .pipeline-connector.done {
   background: var(--accent-dim);
 }
+
+/* ─── Bottom Navigation (Mobile Only) ──────────────────────────────── */
+
+.bottom-nav {
+  display: none;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  padding: 8px 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-family: 'DM Sans', sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.bottom-nav-item.active {
+  color: var(--accent);
+}
+
+.bottom-nav-item:hover:not(.active) {
+  color: var(--text-secondary);
+}
+
+/* ─── Mobile Tab Switcher (Contract Viewer) ─────────────────────────── */
+
+.mobile-tab-bar {
+  display: none;
+}
+
+.mobile-tab-btn {
+  flex: 1;
+  padding: 10px 4px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mobile-tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ─── Document Mobile Cards ─────────────────────────────────────────── */
+
+.doc-mobile-list {
+  display: none;
+}
+
+.doc-mobile-card {
+  padding: 14px 16px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.doc-mobile-card:last-child {
+  border-bottom: none;
+}
+
+.doc-mobile-card-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.doc-mobile-card-meta {
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-muted);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.doc-mobile-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── Graph Bottom Sheet ─────────────────────────────────────────────── */
+
+.graph-bottom-sheet {
+  display: none;
+}
+
+/* ─── Responsive Overrides (≤ 768px) ────────────────────────────────── */
+
+@media (max-width: 768px) {
+
+  /* Sidebar: hide on mobile */
+  .sidebar {
+    display: none !important;
+  }
+
+  /* Bottom nav: show on mobile */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--bg-surface);
+    border-top: 0.5px solid var(--border);
+    z-index: 100;
+    align-items: stretch;
+  }
+
+  /* Main content clearance for bottom nav */
+  main {
+    padding-bottom: 68px;
+  }
+
+  /* Page padding: tighter on mobile */
+  .page-wrapper {
+    padding: 20px 16px !important;
+  }
+
+  /* Headings: slightly smaller */
+  h1 {
+    font-size: 22px !important;
+  }
+
+  /* Stat cards: 2 columns on mobile */
+  .card-stat-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Filter pills: allow wrapping */
+  .filter-pill-row {
+    flex-wrap: wrap;
+  }
+
+  /* Contract viewer: switch to full-height column */
+  .contract-viewer-desktop {
+    display: none !important;
+  }
+
+  .contract-viewer-mobile {
+    display: flex !important;
+    flex-direction: column;
+    height: calc(100dvh - 60px);
+  }
+
+  /* Mobile tab bar */
+  .mobile-tab-bar {
+    display: flex;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--bg-card);
+    flex-shrink: 0;
+  }
+
+  /* Mobile contract panel: full height */
+  .mobile-panel {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* Document table: hide on mobile */
+  .table-container {
+    display: none !important;
+  }
+
+  /* Document card list: show on mobile */
+  .doc-mobile-list {
+    display: block;
+  }
+
+  /* Knowledge graph sidebar: hide on mobile */
+  .graph-sidebar {
+    display: none !important;
+  }
+
+  /* Graph canvas: full width */
+  .graph-canvas-wrapper {
+    width: 100% !important;
+  }
+
+  /* Graph bottom sheet: show when active */
+  .graph-bottom-sheet {
+    display: block;
+    position: fixed;
+    bottom: 60px; /* above bottom nav */
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border-top: 0.5px solid var(--border);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 16px;
+    z-index: 90;
+    animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+
+  /* Graph stat chips row */
+  .graph-stat-chips {
+    display: flex !important;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 10px 16px;
+    border-bottom: 0.5px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .graph-stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: 99px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
