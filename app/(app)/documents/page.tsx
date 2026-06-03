@@ -6,12 +6,25 @@ import { Document } from '@/types';
 import { getRetentionStatus } from '@/lib/retention';
 import DocumentTable from '@/components/dms/DocumentTable';
 import UploadDropzone from '@/components/dms/UploadDropzone';
+import Toast, { ToastMessage } from '@/components/ui/Toast';
+
+let toastCounter = 0;
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const supabase = createClient();
+
+  const addToast = (type: 'success' | 'error', message: string) => {
+    const id = ++toastCounter;
+    setToasts((prev) => [...prev, { id, type, message }]);
+  };
+
+  const dismissToast = (id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
 
   useEffect(() => {
     fetchDocuments();
@@ -36,15 +49,23 @@ export default function DocumentsPage() {
           body: formData,
         });
         const data = await res.json();
-        
+
+        if (!res.ok) {
+          addToast('error', data.error || `Failed to upload "${file.name}".`);
+          continue;
+        }
+
         // Trigger OCR text extraction and AWAIT it so expiry_date is saved before we refresh
         if (data.document && data.document.id) {
           await fetch(`/api/documents/${data.document.id}/ocr`, {
             method: 'POST',
           });
         }
+
+        addToast('success', `"${file.name}" uploaded and processed.`);
       } catch (err) {
         console.error('Upload failed:', err);
+        addToast('error', `Network error uploading "${file.name}".`);
       }
     }
     await fetchDocuments();
@@ -179,6 +200,8 @@ export default function DocumentsPage() {
 
       {/* Upload zone */}
       <UploadDropzone onUpload={handleUpload} />
+
+      <Toast toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

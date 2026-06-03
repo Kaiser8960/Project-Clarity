@@ -7,6 +7,9 @@ import { getRetentionStatus } from '@/lib/retention';
 import RetentionPill from '@/components/dms/RetentionPill';
 import Link from 'next/link';
 import { FileText, Trash2 } from 'lucide-react';
+import Toast, { ToastMessage } from '@/components/ui/Toast';
+
+let toastCounter = 0;
 
 export default function ContractsPage() {
   const [contracts, setContracts] = useState<Contract[]>([]);
@@ -14,7 +17,17 @@ export default function ContractsPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const supabase = createClient();
+
+  const addToast = (type: 'success' | 'error', message: string) => {
+    const id = ++toastCounter;
+    setToasts((prev) => [...prev, { id, type, message }]);
+  };
+
+  const dismissToast = (id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
 
   useEffect(() => {
     fetchContracts();
@@ -53,11 +66,18 @@ export default function ContractsPage() {
       });
       if (res.ok) {
         await fetchContracts();
+        addToast('success', `"${file.name}" uploaded successfully.`);
+      } else {
+        const body = await res.json().catch(() => ({}));
+        addToast('error', body.error || 'Upload failed. Please try again.');
       }
     } catch (err) {
       console.error('Upload failed:', err);
+      addToast('error', 'Network error. Check your connection and try again.');
     }
     setUploading(false);
+    // Reset input so the same file can be re-uploaded if needed
+    e.target.value = '';
   };
 
   const handleDelete = async (id: string) => {
@@ -308,6 +328,8 @@ export default function ContractsPage() {
           ))}
         </div>
       )}
+
+      <Toast toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }
