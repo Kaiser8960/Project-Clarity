@@ -3,6 +3,11 @@
 
 /* ─── Clarity Design System ────────────────────────────────────────── */
 
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
 :root {
   /* Core backgrounds */
   --bg-primary: #0D1117;
