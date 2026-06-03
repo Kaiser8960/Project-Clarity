@@ -20,6 +20,9 @@ export default function LinkedDocsSidebar({
   const [selectedDocId, setSelectedDocId] = useState('');
   const [linking, setLinking] = useState(false);
 
+  const MAX_LINKED_DOCS = 3;
+  const atLimit = documents.length >= MAX_LINKED_DOCS;
+
   const handleLink = async () => {
     if (!selectedDocId) return;
     setLinking(true);
@@ -41,7 +44,7 @@ export default function LinkedDocsSidebar({
           borderBottom: '0.5px solid var(--border)',
         }}
       >
-        Linked Documents ({documents.length})
+        Linked Documents ({documents.length} / {MAX_LINKED_DOCS})
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -123,7 +126,28 @@ export default function LinkedDocsSidebar({
       </div>
 
       {/* Link new document section */}
-      {availableDocuments.length > 0 && (
+      {atLimit ? (
+        <div
+          style={{
+            padding: '14px 16px',
+            borderTop: '0.5px solid var(--border)',
+            background: 'var(--bg-card)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--text-muted)',
+            }}
+          >
+            Limit reached · {MAX_LINKED_DOCS} documents max
+          </span>
+        </div>
+      ) : availableDocuments.length > 0 ? (
         <div
           style={{
             padding: '16px',
@@ -163,7 +187,7 @@ export default function LinkedDocsSidebar({
             {linking ? 'Linking...' : 'Link to Contract'}
           </button>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
