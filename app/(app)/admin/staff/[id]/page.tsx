@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Shield } from 'lucide-react';
 import Toast, { ToastMessage } from '@/components/ui/Toast';
-import { type Permission, DEFAULT_STAFF_PERMISSIONS } from '@/lib/permissions';
+import { type Permission, DEFAULT_STAFF_PERMISSIONS } from '@/lib/permissions-shared';
 
 let toastCounter = 0;
 

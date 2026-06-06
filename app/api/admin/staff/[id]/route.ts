@@ -1,6 +1,6 @@
-import { createServiceClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserMembership } from '@/lib/permissions';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 // PATCH /api/admin/staff/[id] — update a staff member's permissions
 export async function PATCH(
@@ -19,10 +19,10 @@ export async function PATCH(
     return NextResponse.json({ error: 'permissions object is required' }, { status: 400 });
   }
 
-  const serviceSupabase = await createServiceClient();
+  const admin = createAdminClient();
 
   // Ensure the membership belongs to the admin's org
-  const { data: target, error: fetchError } = await serviceSupabase
+  const { data: target, error: fetchError } = await admin
     .from('organization_memberships')
     .select('id, role, org_id')
     .eq('id', membershipId)
@@ -40,7 +40,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Cannot edit admin permissions' }, { status: 400 });
   }
 
-  const { error: updateError } = await serviceSupabase
+  const { error: updateError } = await admin
     .from('organization_memberships')
     .update({ permissions })
     .eq('id', membershipId);

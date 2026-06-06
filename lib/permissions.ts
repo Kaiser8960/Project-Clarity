@@ -1,28 +1,16 @@
+/**
+ * Server-only permissions helpers.
+ * Only import this in API routes and Server Components — NOT in 'use client' files.
+ * For client-safe types and constants, import from lib/permissions-shared.ts instead.
+ */
 import { createClient } from '@/lib/supabase/server';
 
-export type Permission =
-  | 'upload_contracts'
-  | 'upload_documents'
-  | 'view_all_contracts'
-  | 'run_analysis'
-  | 'delete_records';
+// Re-export shared types so existing API route imports still work
+export type { Permission, UserMembership } from '@/lib/permissions-shared';
+export { DEFAULT_STAFF_PERMISSIONS } from '@/lib/permissions-shared';
 
-export interface UserMembership {
-  userId: string;
-  orgId: string;
-  orgName: string;
-  joinCode: string;
-  role: 'admin' | 'staff';
-  permissions: Record<Permission, boolean>;
-}
-
-export const DEFAULT_STAFF_PERMISSIONS: Record<Permission, boolean> = {
-  upload_contracts: true,
-  upload_documents: true,
-  view_all_contracts: false,
-  run_analysis: true,
-  delete_records: false,
-};
+import type { UserMembership, Permission } from '@/lib/permissions-shared';
+import { DEFAULT_STAFF_PERMISSIONS } from '@/lib/permissions-shared';
 
 /**
  * Returns the current authenticated user's org membership, or null if

@@ -1,11 +1,12 @@
-import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_STAFF_PERMISSIONS } from '@/lib/permissions';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const serviceSupabase = await createServiceClient();
+    const admin = createAdminClient();
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -31,8 +32,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Look up the org by join code (case-insensitive)
-    const { data: org, error: orgError } = await serviceSupabase
+    // Look up the org by join code (admin client — no RLS on organizations)
+    const { data: org, error: orgError } = await admin
       .from('organizations')
       .select('id, name')
       .eq('join_code', joinCode.trim().toUpperCase())
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create staff membership with default permissions
-    const { error: memberError } = await serviceSupabase
+    const { error: memberError } = await admin
       .from('organization_memberships')
       .insert({
         org_id: org.id,

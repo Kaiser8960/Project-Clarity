@@ -7,7 +7,7 @@ import {
   Building2, Users, Copy, RefreshCw, Trash2, Shield, UserCog
 } from 'lucide-react';
 import Toast, { ToastMessage } from '@/components/ui/Toast';
-import { DEFAULT_STAFF_PERMISSIONS, type Permission } from '@/lib/permissions';
+import { DEFAULT_STAFF_PERMISSIONS, type Permission } from '@/lib/permissions-shared';
 
 let toastCounter = 0;
 

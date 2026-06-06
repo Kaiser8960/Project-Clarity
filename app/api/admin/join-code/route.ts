@@ -1,6 +1,6 @@
-import { createServiceClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { getUserMembership } from '@/lib/permissions';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 function generateJoinCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -19,11 +19,11 @@ export async function POST() {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const serviceSupabase = await createServiceClient();
+  const admin = createAdminClient();
 
   let newCode = generateJoinCode();
   for (let attempt = 0; attempt < 3; attempt++) {
-    const { data: collision } = await serviceSupabase
+    const { data: collision } = await admin
       .from('organizations')
       .select('id')
       .eq('join_code', newCode)
@@ -32,7 +32,7 @@ export async function POST() {
     newCode = generateJoinCode();
   }
 
-  const { error } = await serviceSupabase
+  const { error } = await admin
     .from('organizations')
     .update({ join_code: newCode })
     .eq('id', membership.orgId);

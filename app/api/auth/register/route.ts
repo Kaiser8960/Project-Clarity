@@ -1,8 +1,9 @@
-import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 function generateJoinCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I confusion
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = 'CLARITY-';
   for (let i = 0; i < 5; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -13,7 +14,7 @@ function generateJoinCode(): string {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const serviceSupabase = await createServiceClient();
+    const admin = createAdminClient();
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Generate a unique join code (retry up to 3 times on collision)
     let joinCode = generateJoinCode();
     for (let attempt = 0; attempt < 3; attempt++) {
-      const { data: collision } = await serviceSupabase
+      const { data: collision } = await admin
         .from('organizations')
         .select('id')
         .eq('join_code', joinCode)
@@ -51,8 +52,8 @@ export async function POST(request: NextRequest) {
       joinCode = generateJoinCode();
     }
 
-    // Create the organization (use service role to bypass RLS)
-    const { data: org, error: orgError } = await serviceSupabase
+    // Create the organization — admin client bypasses RLS reliably
+    const { data: org, error: orgError } = await admin
       .from('organizations')
       .insert({ name: businessName.trim(), join_code: joinCode })
       .select()
@@ -64,13 +65,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Create admin membership
-    const { error: memberError } = await serviceSupabase
+    const { error: memberError } = await admin
       .from('organization_memberships')
       .insert({
         org_id: org.id,
         user_id: user.id,
         role: 'admin',
-        permissions: null, // admins bypass permission checks
+        permissions: null,
       });
 
     if (memberError) {
