@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { getUserMembership, hasPermission } from '@/lib/permissions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,6 +11,12 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Permission check — staff must have upload_documents enabled
+    const membership = await getUserMembership();
+    if (membership && !hasPermission(membership, 'upload_documents')) {
+      return NextResponse.json({ error: 'You do not have permission to upload documents' }, { status: 403 });
     }
 
     const formData = await request.formData();
@@ -55,6 +62,7 @@ export async function POST(request: NextRequest) {
       .from('documents')
       .insert({
         user_id: user.id,
+        org_id: membership?.orgId ?? null,
         name: file.name,
         file_path: fileName,
         file_type: fileType,

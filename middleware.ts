@@ -1,13 +1,11 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const protectedRoutes = ['/contracts', '/documents', '/graph', '/reports'];
-const authRoutes = ['/login', '/signup', '/forgot-password'];
+const protectedRoutes = ['/contracts', '/documents', '/graph', '/reports', '/admin'];
+const authRoutes = ['/login', '/signup', '/forgot-password', '/register', '/join'];
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,12 +16,10 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -38,18 +34,33 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Redirect unauthenticated users away from protected routes
+  // ── Redirect unauthenticated users away from protected routes ──
   if (!user && protectedRoutes.some((route) => pathname.startsWith(route))) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users away from auth routes
+  // ── Redirect authenticated users away from auth routes ──
   if (user && authRoutes.some((route) => pathname.startsWith(route))) {
     const url = request.nextUrl.clone();
     url.pathname = '/contracts';
     return NextResponse.redirect(url);
+  }
+
+  // ── Admin route protection: only users with role=admin may access /admin ──
+  if (user && pathname.startsWith('/admin')) {
+    const { data: membership } = await supabase
+      .from('organization_memberships')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!membership || membership.role !== 'admin') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/contracts';
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeContract } from '@/lib/gemini';
+import { getUserMembership, hasPermission } from '@/lib/permissions';
 
 export async function POST(
   request: NextRequest,
@@ -15,6 +16,12 @@ export async function POST(
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Permission check — staff must have run_analysis enabled
+    const membership = await getUserMembership();
+    if (membership && !hasPermission(membership, 'run_analysis')) {
+      return NextResponse.json({ error: 'You do not have permission to run analysis' }, { status: 403 });
     }
 
     // Get contract text

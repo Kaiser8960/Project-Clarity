@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { getUserMembership, hasPermission } from '@/lib/permissions';
 
 export async function DELETE(
   _request: NextRequest,
@@ -15,6 +16,12 @@ export async function DELETE(
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Permission check — staff must have delete_records enabled
+    const membership = await getUserMembership();
+    if (membership && !hasPermission(membership, 'delete_records')) {
+      return NextResponse.json({ error: 'You do not have permission to delete contracts' }, { status: 403 });
     }
 
     // Verify ownership

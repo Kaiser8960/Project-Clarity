@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { countWords, extractTextFromPdf } from '@/lib/ocr';
 import { extractExpiryDate } from '@/lib/gemini';
+import { getUserMembership, hasPermission } from '@/lib/permissions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +13,12 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Permission check — staff must have upload_contracts enabled
+    const membership = await getUserMembership();
+    if (membership && !hasPermission(membership, 'upload_contracts')) {
+      return NextResponse.json({ error: 'You do not have permission to upload contracts' }, { status: 403 });
     }
 
     const formData = await request.formData();
@@ -65,6 +72,7 @@ export async function POST(request: NextRequest) {
       .from('contracts')
       .insert({
         user_id: user.id,
+        org_id: membership?.orgId ?? null,
         name: file.name,
         file_path: fileName,
         raw_text: rawText,

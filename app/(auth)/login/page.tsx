@@ -195,12 +195,28 @@ export default function LoginPage() {
           color: 'var(--text-secondary)',
         }}
       >
-        Don&apos;t have an account?{' '}
+        Are you a business owner?{' '}
         <Link
-          href="/signup"
+          href="/register"
           style={{ color: 'var(--accent)', textDecoration: 'none' }}
         >
-          Sign up
+          Register your organization
+        </Link>
+      </p>
+      <p
+        style={{
+          textAlign: 'center',
+          marginTop: '8px',
+          fontSize: '14px',
+          color: 'var(--text-secondary)',
+        }}
+      >
+        Joining your team?{' '}
+        <Link
+          href="/join"
+          style={{ color: 'var(--accent)', textDecoration: 'none' }}
+        >
+          Use an invite code
         </Link>
       </p>
     </div>
