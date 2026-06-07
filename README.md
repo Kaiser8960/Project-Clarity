@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Clarity v2 — Contract Risk Analysis
 
-## Getting Started
+A web app for small businesses to analyze legal contracts, flag risky clauses, and manage team access without needing a lawyer.
 
-First, run the development server:
+## Features
+- AI-powered contract clause analysis (high/medium/low risk)
+- Document vault with OCR support for scanned files
+- Knowledge graph showing relationships and conflicts between documents
+- Admin dashboard with per-staff permission controls
+- Invite code system for team onboarding
+- Expiry date tracking and retention status
+- Cross-document conflict detection
 
+## Tech Stack
+- Next.js 16 / TypeScript
+- Supabase (PostgreSQL + Auth + Storage)
+- Google Gemini 2.5 Flash
+- Tesseract.js (OCR)
+- React Force Graph
+
+## Prerequisites
+- Node.js v18+
+- Supabase account (free tier works)
+- Google AI Studio account for a Gemini API key
+
+## Installation
+
+**1. Install dependencies**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**2. Set up environment variables**
+```bash
+cp .env.example .env.local
+```
+Fill in `.env.local` with your Supabase and Gemini credentials (see `.env.example` for what's needed and where to find each value).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**3. Set up the Supabase database**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+In your Supabase project, go to **SQL Editor → New Query** and run the migration files in order:
 
-## Learn More
+```
+supabase/migrations/001_create_tables.sql
+supabase/migrations/002_rls_policies.sql
+supabase/migrations/003_pgvector.sql
+supabase/migrations/005_org_schema.sql
+supabase/migrations/006_fix_rls.sql
+```
 
-To learn more about Next.js, take a look at the following resources:
+> Skip `004_pg_cron.sql` unless you have pg_cron enabled.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Also enable the `vector` extension under **Database → Extensions**, and disable email confirmation under **Authentication → Settings** for local testing.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**4. Create storage buckets**
 
-## Deploy on Vercel
+In **Storage**, create two private buckets named `contracts` and `documents`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**5. Run the dev server**
+```bash
+npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+App runs at `http://localhost:3000`.
+
+## Default Accounts
+
+There are no hardcoded accounts. On first use:
+
+- Go to `/register` to create an organization (Admin account)
+- Share the invite code from the Admin dashboard
+- Staff go to `/join` and use the invite code to create their account
+
+## Notes
+- Gemini API occasional 503 errors are normal on the free tier — just retry
+- OCR runs locally via Tesseract.js; `eng.traineddata` in the root is required for it to work
+- Migration `006_fix_rls.sql` must be run after `005` — skipping it breaks registration
