@@ -109,7 +109,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="page-wrapper" style={{ padding: '32px 40px', maxWidth: '960px' }}>
+    <div style={{ padding: '40px 48px', height: '100%', minHeight: '100vh' }}>
       {/* Header */}
       <div style={{ marginBottom: '32px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
@@ -146,7 +146,7 @@ export default function AdminPage() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '24px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '32px', alignItems: 'start' }}>
         {/* Staff Table */}
         <div>
           <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -241,7 +241,7 @@ export default function AdminPage() {
         </div>
 
         {/* Join Code Panel */}
-        <div style={{ minWidth: '240px' }}>
+        <div>
           <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 16px 0' }}>
             Invite Code
           </h2>
